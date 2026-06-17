@@ -106,61 +106,9 @@ const FAQS = [
   { q: 'Do you offer post-launch maintenance?', a: 'Yes. We offer long-term support and maintenance models to keep your application stable, secure, and ready for future updates.' },
 ];
 
-const PRODUCTS = [
-  {
-    id: 'leave-only',
-    name: 'Leave Only',
-    tagline: 'Employee Leave & PTO Management App',
-    description: 'Developed a native iOS application that simplifies employee leave management with easy leave requests, approvals, PTO tracking, team calendars, and real-time leave balance management.',
-    price: 99999,
-    features: [
-      'Native iOS Application Codebase',
-      'Leave Requests & Approvals Flow',
-      'Paid Time Off (PTO) Tracking',
-      'Team & Department Calendars',
-      'Real-Time Balance Management',
-      'Push Notifications & Alerts'
-    ]
-  },
-  {
-    id: 'asset-flow',
-    name: 'AssetFlow',
-    tagline: 'Asset Manager (iOS App)',
-    description: 'AssetFlow is an iOS-based asset management application designed to help organizations efficiently track, manage, and monitor their assets from a centralized platform. Maintain records, monitor status, and manage schedules.',
-    price: 69999,
-    features: [
-      'Centralized Asset Database',
-      'Asset Status Monitoring & Tracking',
-      'Maintenance Scheduling & Logs',
-      'Intuitive iOS Mobile Interface',
-      'High Performance & Scalable Codebase'
-    ]
-  }
-];
 
 export default function Services() {
-  const [scriptLoaded, setScriptLoaded] = useState(false);
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
-  const [paidProduct, setPaidProduct] = useState('');
-  const [paymentId, setPaymentId] = useState('');
-  const [processing, setProcessing] = useState(false);
-
   useScrollReveal();
-
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.async = true;
-    script.onload = () => setScriptLoaded(true);
-    script.onerror = () => console.error('Razorpay SDK failed to load.');
-    document.body.appendChild(script);
-
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    };
-  }, []);
 
   useEffect(() => {
     gsap.fromTo('.chart-line', 
@@ -174,56 +122,6 @@ export default function Services() {
       }
     );
   }, []);
-
-  const handleBuyProduct = (productName, price) => {
-    if (!scriptLoaded || !window.Razorpay) {
-      window.alert('Razorpay Checkout SDK is still loading. Please wait a moment.');
-      return;
-    }
-
-    setProcessing(true);
-
-    const options = {
-      key: 'rzp_test_SexA0OHvFEyMRO', // Razorpay Key ID
-      amount: price * 100, // Price in paise
-      currency: 'INR',
-      name: 'AndroInfraMind',
-      description: `Purchase of ${productName}`,
-      image: 'https://placeholder.co/128x128?text=AIM',
-      handler(response) {
-        setPaymentSuccess(true);
-        setPaidProduct(productName);
-        setPaymentId(response.razorpay_payment_id);
-        setProcessing(false);
-      },
-      prefill: {
-        name: '',
-        email: '',
-      },
-      theme: {
-        color: '#2563eb',
-      },
-      modal: {
-        ondismiss() {
-          setProcessing(false);
-        },
-      },
-    };
-
-    try {
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
-    } catch (error) {
-      console.error(error);
-      setProcessing(false);
-      window.alert('Payment initialization failed. Using test simulation.');
-      window.setTimeout(() => {
-        setPaymentSuccess(true);
-        setPaidProduct(productName);
-        setPaymentId(`pay_test_simulation_${Math.random().toString(36).slice(2, 9)}`);
-      }, 1000);
-    }
-  };
 
   return (
     <main>
@@ -303,75 +201,6 @@ export default function Services() {
                   </div>
                 }
               />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="products" className="section">
-        <div className="container">
-          <SectionHeading
-            eyebrow="Proprietary Products"
-            title="Premium Ready-to-Deploy iOS Applications"
-            description="Acquire full licenses for our professionally engineered mobile solutions. Deploy immediately to streamline your operations."
-            align="center"
-          />
-
-          {paymentSuccess ? (
-            <div className="success-banner scroll-reveal" role="status" style={{ maxWidth: '600px', margin: '0 auto var(--spacing-md) auto', display: 'flex', gap: '12px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '16px', borderRadius: '12px', alignItems: 'center' }}>
-              <CheckCircle2 className="w-6 h-6" style={{ color: '#059669', flexShrink: 0 }} />
-              <div>
-                <strong style={{ color: 'var(--text-primary)' }}>Purchase Successful!</strong>
-                <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Thank you for buying <strong>{paidProduct}</strong>. Payment ID: {paymentId}. Our team will contact you shortly with transfer details.</p>
-              </div>
-              <button type="button" className="site-button site-button-secondary site-button-sm" style={{ marginLeft: 'auto' }} onClick={() => setPaymentSuccess(false)}>
-                Dismiss
-              </button>
-            </div>
-          ) : null}
-
-          <div className="grid-two">
-            {PRODUCTS.map((product) => (
-              <div key={product.id} className="surface-panel scroll-reveal" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
-                    <span className="eyebrow">{product.name}</span>
-                    <strong style={{ fontSize: '1.4rem', color: 'var(--accent)', fontWeight: '700' }}>
-                      ₹{product.price.toLocaleString('en-IN')}
-                    </strong>
-                  </div>
-                  <h3 className="card-title" style={{ marginTop: '14px', fontSize: '1.3rem', fontWeight: '600', color: 'var(--text-primary)' }}>
-                    {product.tagline}
-                  </h3>
-                  <p className="card-copy" style={{ marginTop: '12px', fontSize: '0.95rem' }}>
-                    {product.description}
-                  </p>
-                  
-                  <div style={{ marginTop: '20px' }}>
-                    <h4 style={{ fontSize: '0.85rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-primary)', marginBottom: '10px' }}>Included Features:</h4>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {product.features.map((feat) => (
-                        <div key={feat} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <CheckCircle2 className="w-4.5 h-4.5" style={{ color: 'var(--accent)', flexShrink: 0 }} />
-                          <span style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>{feat}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ marginTop: '30px' }}>
-                  <button 
-                    type="button" 
-                    className="site-button site-button-primary" 
-                    style={{ width: '100%' }}
-                    onClick={() => handleBuyProduct(product.name, product.price)}
-                    disabled={processing}
-                  >
-                    {processing ? 'Processing...' : `Purchase License — ₹${product.price.toLocaleString('en-IN')}`}
-                  </button>
-                </div>
-              </div>
             ))}
           </div>
         </div>

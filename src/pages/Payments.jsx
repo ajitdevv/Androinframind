@@ -70,7 +70,7 @@ export default function Payments() {
     setProcessing(true);
 
     const options = {
-      key: 'rzp_test_SexA0OHvFEyMRO',
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
       amount: Math.round(Number.parseFloat(formData.amount) * 100),
       currency: 'INR',
       name: 'AndroInfraMind',
