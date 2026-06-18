@@ -26,6 +26,33 @@ export async function saveLead(lead) {
   }
 }
 
+export async function saveContact(contact) {
+  try {
+    if (supabaseUrl.includes('placeholder-project')) {
+      saveToLocal('andro_contacts', contact);
+      return { success: true };
+    }
+
+    const { data, error } = await supabase.from('contacts').insert([contact]).select();
+    if (error) throw error;
+
+    // Optional direct trigger (if Database Webhook is not configured)
+    try {
+      await supabase.functions.invoke('send-inquiry-email', {
+        body: contact,
+      });
+    } catch (funcErr) {
+      console.warn('Edge function invocation skipped/failed:', funcErr);
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.warn('Supabase contact insert failed, falling back to localStorage:', getErrorMessage(error));
+    saveToLocal('andro_contacts', contact);
+    return { success: true };
+  }
+}
+
 export async function saveSubscription(sub) {
   try {
     if (supabaseUrl.includes('placeholder-project')) {

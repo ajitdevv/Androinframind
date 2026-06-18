@@ -1,21 +1,29 @@
 import { useState } from 'react';
 import { CheckCircle2 } from 'lucide-react';
-import { saveLead } from '@/lib/supabaseClient';
+import { saveContact } from '@/lib/supabaseClient';
 
-const BUDGET_LABELS = {
-  '5-15k': '$5,000 - $15,000',
-  '15-50k': '$15,000 - $50,000',
-  '50-100k': '$50,000 - $100,000',
-  '100k+': '$100,000+',
-  unsure: 'Not sure yet',
-};
+const BUDGET_OPTIONS = [
+  { value: '5-15k', label: '₹5,000 - ₹15,000' },
+  { value: '15-50k', label: '₹15,000 - ₹50,000' },
+  { value: '50-100k', label: '₹50,000 - ₹100,000' },
+  { value: '100k+', label: '₹100,000+' },
+  { value: 'unsure', label: 'Not sure yet' },
+];
+
+const SERVICE_OPTIONS = [
+  { value: 'Web Development', label: 'Web Development' },
+  { value: 'Mobile App Development', label: 'Mobile App Development' },
+  { value: 'AI/ML Solutions', label: 'AI/ML Solutions' },
+  { value: 'UI/UX Design', label: 'UI/UX Design' },
+  { value: 'Cloud & DevOps', label: 'Cloud & DevOps' },
+];
 
 export default function LeadForm({
-  title = 'Start your project discovery',
-  description = 'Share your goals and our team will follow up with a tailored technical roadmap.',
-  submitLabel = 'Send inquiry',
-  successTitle = 'Inquiry received',
-  successMessage = 'Our team will review your requirements and get back to you within 24 hours.',
+  title = 'Start project discovery',
+  description = 'Tell us what you are building, improving, or migrating and we’ll help define the right next step.',
+  submitLabel = 'Send your inquiry',
+  successTitle = 'Inquiry sent',
+  successMessage = 'Thank you for reaching out. The AndroInfraMind team will contact you within the next 24 hours.',
 }) {
   const [formData, setFormData] = useState({
     fullName: '',
@@ -64,17 +72,19 @@ export default function LeadForm({
 
     setSubmitting(true);
     try {
-      const { success: leadSaved } = await saveLead({
+      const selectedBudget = BUDGET_OPTIONS.find((opt) => opt.value === formData.budget)?.label || formData.budget;
+
+      const { success: contactSaved } = await saveContact({
         full_name: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        company: formData.company,
+        work_email: formData.email,
+        phone: formData.phone || null,
+        company: formData.company || null,
         service: formData.service,
-        budget: BUDGET_LABELS[formData.budget] || formData.budget,
-        project_description: formData.details,
+        budget: selectedBudget,
+        project_details: formData.details,
       });
 
-      if (leadSaved) {
+      if (contactSaved) {
         setSuccess(true);
         setFormData({
           fullName: '',
@@ -134,7 +144,7 @@ export default function LeadForm({
             <label htmlFor="phone">Phone number</label>
             <input
               id="phone"
-              type="text"
+              type="tel"
               className="site-input"
               placeholder="+91 00000 00000"
               value={formData.phone}
@@ -164,12 +174,11 @@ export default function LeadForm({
             onChange={handleInputChange}
           >
             <option value="">Select a service</option>
-            <option value="custom-software">Custom Software Engineering</option>
-            <option value="web-app">Web Application Development</option>
-            <option value="mobile-app">Mobile App Development</option>
-            <option value="ai-ml">AI & Machine Learning</option>
-            <option value="cloud-infra">Cloud & DevOps</option>
-            <option value="digital-marketing">Digital Marketing & SEO</option>
+            {SERVICE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
           </select>
           {errors.service ? <span className="form-error">{errors.service}</span> : null}
         </div>
@@ -177,14 +186,14 @@ export default function LeadForm({
         <div className="form-field">
           <label>Estimated budget</label>
           <div className="pill-row">
-            {Object.entries(BUDGET_LABELS).map(([value, label]) => (
+            {BUDGET_OPTIONS.map((opt) => (
               <button
-                key={value}
+                key={opt.value}
                 type="button"
-                className={`pill-button ${formData.budget === value ? 'active' : ''}`}
-                onClick={() => setFormData((prev) => ({ ...prev, budget: value }))}
+                className={`pill-button ${formData.budget === opt.value ? 'active' : ''}`}
+                onClick={() => setFormData((prev) => ({ ...prev, budget: opt.value }))}
               >
-                {label}
+                {opt.label}
               </button>
             ))}
           </div>
