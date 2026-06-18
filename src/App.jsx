@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { HashRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import ChatbotWidget from './components/site/ChatbotWidget';
@@ -12,6 +12,7 @@ import Blog from './pages/Blog';
 import Payments from './pages/Payments';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
+import Dashboard from './pages/Dashboard';
 import { useFloatingBlobs, useMagneticButtons, useCardTilt, useCustomCursor, useTextReveal, usePageTransition, useSmoothScroll } from './hooks/useGsap';
 
 function ScrollToTop() {
@@ -43,13 +44,27 @@ function ScrollToTop() {
 
 function MainAppLayout() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+
   useFloatingBlobs();
-  useMagneticButtons(pathname);
+  const cleanupMagnetic = useMagneticButtons(pathname);
   useCardTilt(pathname);
   useCustomCursor();
   useTextReveal(pathname);
   usePageTransition(pathname);
   useSmoothScroll(pathname);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.ctrlKey && e.shiftKey && e.key.toUpperCase() === 'A') {
+        e.preventDefault();
+        navigate('/androinframaind/dashboard');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [navigate]);
 
   return (
     <div className="app-shell">
@@ -67,6 +82,7 @@ function MainAppLayout() {
           <Route path="/payments" element={<Payments />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
+          <Route path="/androinframaind/dashboard" element={<Dashboard />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </div>

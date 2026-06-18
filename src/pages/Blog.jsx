@@ -1,5 +1,6 @@
 import { Calendar, Clock, Search, User } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { fetchBlogs } from '@/lib/supabaseClient';
 import CTASection from '@/components/site/CTASection';
 import PageHero from '@/components/site/PageHero';
 import SectionHeading from '@/components/site/SectionHeading';
@@ -56,9 +57,32 @@ const BLOG_POSTS = [
 export default function Blog() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  useScrollReveal(activeCategory + '_' + searchQuery);
+  const [blogsList, setBlogsList] = useState([]);
+  useScrollReveal(activeCategory + '_' + searchQuery + '_' + blogsList.length);
 
-  const filteredPosts = BLOG_POSTS.filter((post) => {
+  useEffect(() => {
+    async function loadBlogs() {
+      const res = await fetchBlogs();
+      if (res.success && res.data && res.data.length > 0) {
+        const mapped = res.data.map(b => ({
+          id: b.id,
+          category: b.category,
+          tag: b.tag,
+          title: b.title,
+          excerpt: b.excerpt,
+          author: b.author,
+          date: b.date_text,
+          readTime: b.read_time
+        }));
+        setBlogsList(mapped);
+      } else {
+        setBlogsList(BLOG_POSTS);
+      }
+    }
+    loadBlogs();
+  }, []);
+
+  const filteredPosts = blogsList.filter((post) => {
     const matchesCategory = activeCategory === 'all' || post.category === activeCategory;
     const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) || post.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;

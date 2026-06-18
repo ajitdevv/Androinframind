@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CheckSquare, HardDriveUpload, Lock, ShieldCheck, CalendarRange, Database, Sparkles, Gamepad2, CheckCircle2 } from 'lucide-react';
+import { fetchProjects } from '@/lib/supabaseClient';
 import CTASection from '@/components/site/CTASection';
 import CaseStudyCard from '@/components/site/CaseStudyCard';
 import FeatureCard from '@/components/site/FeatureCard';
@@ -129,9 +130,40 @@ const TESTIMONIALS = [
   { name: 'Elena Rostova', role: 'CTO, CoreSaaS Analytics', text: 'Their expertise in microservices and database clustering helped us launch our platform with zero downtime. Exceptional engineering partners.' },
 ];
 
+const getProjectIcon = (slug) => {
+  const cn = "w-5 h-5";
+  if (slug === 'leave-only') return <CalendarRange className={cn} />;
+  if (slug === 'asset-flow') return <Database className={cn} />;
+  if (slug === 'ai-visual-editor') return <Sparkles className={cn} />;
+  if (slug === 'xo-arena') return <Gamepad2 className={cn} />;
+  return <Sparkles className={cn} />;
+};
+
 export default function Projects() {
   const [expandedCards, setExpandedCards] = useState({});
-  useScrollReveal();
+  const [projectsList, setProjectsList] = useState([]);
+  useScrollReveal(projectsList.length);
+
+  useEffect(() => {
+    async function loadProjects() {
+      const res = await fetchProjects();
+      if (res.success && res.data && res.data.length > 0) {
+        const mapped = res.data.map(p => ({
+          id: p.project_slug,
+          name: p.name,
+          tagline: p.tagline,
+          desc: p.desc_text,
+          icon: getProjectIcon(p.project_slug),
+          badge: p.badge,
+          features: p.features || []
+        }));
+        setProjectsList(mapped);
+      } else {
+        setProjectsList(STORE_PROJECTS);
+      }
+    }
+    loadProjects();
+  }, []);
 
   const toggleExpandCard = (id) => {
     setExpandedCards((prev) => ({
@@ -175,7 +207,7 @@ export default function Projects() {
             align="center"
           />
           <div className="grid-four" style={{ alignItems: 'start' }}>
-            {STORE_PROJECTS.map((project) => {
+            {projectsList.map((project) => {
               const isExpanded = !!expandedCards[project.id];
               return (
                 <div 
