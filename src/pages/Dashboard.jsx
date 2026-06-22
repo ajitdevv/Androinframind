@@ -367,6 +367,7 @@ export default function Dashboard() {
                     type="password"
                     className="site-input"
                     placeholder="••••••••"
+                    autoComplete="current-password"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     required

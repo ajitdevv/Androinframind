@@ -207,9 +207,10 @@ export async function saveJobApplication(app) {
     if (error) throw error;
     return { success: true, data };
   } catch (error) {
-    console.warn('Supabase job application insert failed, falling back to localStorage:', getErrorMessage(error));
-    saveToLocal('andro_job_applications', app);
-    return { success: true };
+    // Do NOT silently fall back to localStorage — surface the real error
+    // so it shows in the UI and can be debugged properly.
+    console.error('Supabase job application insert failed:', getErrorMessage(error));
+    return { success: false, error: getErrorMessage(error) };
   }
 }
 
